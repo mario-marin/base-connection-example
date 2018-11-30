@@ -13,6 +13,7 @@ public class Libro {
     private String nombre;
     private String editorial;
     private String genero;
+    private String url_image;
     private int autor;
 
     public void setId(int id){
@@ -29,6 +30,14 @@ public class Libro {
 
     public void setNombre(String nombre) {
         this.nombre = nombre;
+    }
+
+    public String get_url_image() {
+        return url_image;
+    }
+
+    public void set_url_image(String url) {
+        this.url_image = url;
     }
 
     public String getEditorial() {
@@ -71,6 +80,7 @@ public class Libro {
                 libro.setEditorial(obj.getString("editorial"));
                 libro.setGenero(obj.getString("genero"));
                 libro.setAutor(obj.getInt("autor"));
+                libro.set_url_image(obj.getString("photo"));
 
                 lista.add(libro);
             }

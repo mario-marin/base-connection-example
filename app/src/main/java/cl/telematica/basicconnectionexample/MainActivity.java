@@ -8,12 +8,26 @@ import android.support.v7.widget.RecyclerView;
 
 import cl.telematica.basicconnectionexample.connection.HttpServerConnection;
 import cl.telematica.basicconnectionexample.models.Libro;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.scalars.ScalarsConverterFactory;
+import retrofit2.http.GET;
+import retrofit2.http.Url;
 
 public class MainActivity extends AppCompatActivity {
 
     private RecyclerView mRecyclerView;
     private RecyclerView.Adapter mAdapter;
     private RecyclerView.LayoutManager mLayoutManager;
+
+    public interface download {
+        @GET
+        Call<String> get_data(@Url String url);
+    }
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,28 +44,32 @@ public class MainActivity extends AppCompatActivity {
         mLayoutManager = new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false);
         mRecyclerView.setLayoutManager(mLayoutManager);
 
-        AsyncTask<Void, Void, String> task = new AsyncTask<Void, Void, String>() {
-            @Override
-            protected void onPreExecute()
-            {
-                //Antes de ejecutar la hebra
-            }
+        Retrofit retrofit = new Retrofit.Builder()
+                .addConverterFactory(ScalarsConverterFactory.create())
+                .baseUrl("http://www.mocky.io/")
+                .build();
 
-            @Override
-            protected String doInBackground(Void... voids) {
-                String resultado = new HttpServerConnection().connectToServer("http://www.mocky.io/v2/5bfc6aa9310000780039be36", 15000);
-                return resultado;
-            }
+        download service = retrofit.create(download.class);
 
+        Call<String> data = service.get_data("http://www.mocky.io/v2/5bfc6aa9310000780039be36");
+
+        data.enqueue(new Callback<String>() {
             @Override
-            protected void onPostExecute(String result) {
-                if(result != null) {
-                    mAdapter = new UIAdapter(Libro.getLibros(result));
+            public void onResponse(Call<String> call, Response<String> response) {
+                if (response.isSuccessful()) {
+                    String responseString = response.body();
+                    System.out.println(responseString);
+                    mAdapter = new UIAdapter(Libro.getLibros(responseString));
                     mRecyclerView.setAdapter(mAdapter);
                 }
-            }
-        };
 
-        task.execute();
+            }
+
+            @Override
+            public void onFailure(Call<String> call, Throwable t) {
+
+            }
+        });
+
     }
 }
